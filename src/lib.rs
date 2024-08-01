@@ -1,10 +1,12 @@
-use std::convert::From;
-use std::fmt::Display;
-use std::ops::{
+#![cfg_attr(not(feature = "std"), no_std)]
+
+use core::convert::From;
+use core::fmt::Display;
+use core::ops::{
     Add, AddAssign, BitOr, BitOrAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign,
     Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
-use std::u128;
+use core::u128;
 
 pub trait Fractional:
     From<u8>
@@ -28,10 +30,12 @@ pub trait Fractional:
     + ShlAssign<usize>
     + Shr<usize, Output = Self>
     + ShrAssign<usize>
-    + ToString
     + Display
 {
     fn trailing_zeros(self) -> u32;
+
+    #[cfg(feature = "std")]
+    fn to_string(&self) -> String;
 }
 
 macro_rules! impl_fractional {
@@ -39,6 +43,11 @@ macro_rules! impl_fractional {
         impl $name for $t {
             fn trailing_zeros(self) -> u32 {
                 self.trailing_zeros()
+            }
+
+            #[cfg(feature = "std")]
+            fn to_string(&self) -> String {
+                ToString::to_string(&self)
             }
         }
     )*)
@@ -132,7 +141,7 @@ where
         a * (b / gcd)
     }
 
-    // function to display the fraction in the form of a decimal with infinite precision
+    #[cfg(feature = "std")]
     pub fn to_decimal_string(&self, precision: usize) -> String {
         let mut result = String::new();
         let mut numerator = self.numerator;
@@ -341,7 +350,7 @@ impl<T> Display for Fraction<T>
 where
     T: Fractional,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         write!(
             f,
             "{}{}/{}",
@@ -605,6 +614,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn test_display() {
         let f: Fraction<u8> = Fraction::new(1, 2, FractionSign::Positive);
         assert_eq!(format!("{}", f), "1/2");

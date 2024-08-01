@@ -57,11 +57,12 @@ mod tests {
     use super::*;
     extern crate test;
 
-    use std::hint::black_box;
+    use core::hint::black_box;
 
     use test::Bencher;
 
     #[test]
+    #[cfg(feature = "std")]
     fn test_calc_pi_equal() {
         let pi_fractions = calc_pi_fractions(20);
         let pi_bigfloat = calc_pi_bigfloat(20);

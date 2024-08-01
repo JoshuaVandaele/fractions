@@ -11,3 +11,7 @@ rug = "1.25.0"
 [[bin]]
 name = "fractions_benchmark"
 path = "fractions_benchmark.rs"
+
+[features]
+default = ["std"]
+std = []
