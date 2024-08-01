@@ -157,8 +157,7 @@ impl Rem for Fraction {
     fn rem(self, other: Fraction) -> Fraction {
         let numerator = (self.numerator * other.denominator as i32)
             % (other.numerator * self.denominator as i32);
-
-        let denominator = self.denominator * other.denominator as u32;
+        let denominator = self.denominator * other.denominator;
         Fraction::new(numerator, denominator)
     }
 }
