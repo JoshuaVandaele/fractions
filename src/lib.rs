@@ -60,9 +60,17 @@ impl Fraction {
         result.push_str(&(numerator / denominator).to_string());
         result.push('.');
         numerator %= denominator;
-        for _ in 0..precision {
+        for i in 0..precision {
             numerator *= 10;
-            result.push_str(&(numerator / denominator).to_string());
+            let mut digit = numerator / denominator;
+            if i == precision - 1 {
+                if digit >= 5 {
+                    digit += 1;
+                } else {
+                    digit = 0;
+                }
+            }
+            result.push_str(&(digit).to_string());
             numerator %= denominator;
         }
         result
