@@ -1,0 +1,13 @@
+[package]
+name = "fractions_benchmark"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fractions = { path = ".." }
+num-bigfloat = "1.7.1"
+rug = "1.25.0"
+
+[[bin]]
+name = "fractions_benchmark"
+path = "fractions_benchmark.rs"
