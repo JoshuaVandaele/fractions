@@ -5,9 +5,9 @@
 Benchmarks using the Nilakantha series to calculate π over 10 iterations.
 
 ```text
-test tests::bench_calc_pi_bigfloat  ... bench:       4,830.57 ns/iter (+/- 211.80)
-test tests::bench_calc_pi_fractions ... bench:         427.48 ns/iter (+/- 5.53)
-test tests::bench_calc_pi_rug       ... bench:         867.73 ns/iter (+/- 27.10)
+test tests::bench_calc_pi_bigfloat  ... bench:       5,284.84 ns/iter (+/- 205.03)
+test tests::bench_calc_pi_fractions ... bench:         489.61 ns/iter (+/- 24.67)
+test tests::bench_calc_pi_rug       ... bench:         773.91 ns/iter (+/- 8.25)
 ```
 
 ## License
