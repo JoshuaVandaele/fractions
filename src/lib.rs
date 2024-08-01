@@ -1,4 +1,4 @@
-use std::convert::{From, Into};
+use std::convert::From;
 use std::fmt::Display;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign,
@@ -20,7 +20,7 @@ impl Fraction {
     }
 
     pub fn simplify(&self) -> Fraction {
-        let gcd = Self::gcd(self.numerator.abs() as u32, self.denominator);
+        let gcd = Self::gcd(self.numerator.unsigned_abs(), self.denominator);
         Fraction {
             numerator: self.numerator / gcd as i32,
             denominator: self.denominator / gcd,
@@ -52,7 +52,7 @@ impl Fraction {
     // function to display the fraction in the form of a decimal with infinite precision
     pub fn to_decimal_string(&self, precision: usize) -> String {
         let mut result = String::new();
-        let mut numerator = self.numerator.abs() as u32;
+        let mut numerator = self.numerator.unsigned_abs();
         let denominator = self.denominator;
         if self.numerator < 0 {
             result.push('-');
@@ -188,9 +188,9 @@ macro_rules! impl_from {
 macro_rules! impl_into {
     ($($t:ty),*) => {
         $(
-            impl Into<$t> for Fraction {
-                fn into(self) -> $t {
-                    self.numerator as $t / self.denominator as $t
+            impl From<Fraction> for $t {
+                fn from(f: Fraction) -> Self {
+                    f.numerator as $t / f.denominator as $t
                 }
             }
         )*
