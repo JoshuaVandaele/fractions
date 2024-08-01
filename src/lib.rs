@@ -19,7 +19,7 @@ impl Fraction {
         .simplify()
     }
 
-    pub fn simplify(&self) -> Fraction {
+    pub fn simplify(self) -> Fraction {
         let gcd = Self::gcd(self.numerator.unsigned_abs(), self.denominator);
         Fraction {
             numerator: self.numerator / gcd as i32,
@@ -76,7 +76,7 @@ impl Add for Fraction {
         let numerator =
             self.numerator * other.denominator as i32 + other.numerator * self.denominator as i32;
         let denominator = self.denominator * other.denominator;
-        Fraction::new(numerator, denominator).simplify()
+        Fraction::new(numerator, denominator)
     }
 }
 
@@ -93,7 +93,7 @@ impl Sub for Fraction {
         let numerator =
             self.numerator * other.denominator as i32 - other.numerator * self.denominator as i32;
         let denominator = self.denominator * other.denominator;
-        Fraction::new(numerator, denominator).simplify()
+        Fraction::new(numerator, denominator)
     }
 }
 
@@ -109,7 +109,7 @@ impl Mul for Fraction {
     fn mul(self, other: Fraction) -> Fraction {
         let numerator = self.numerator * other.numerator;
         let denominator = self.denominator * other.denominator;
-        Fraction::new(numerator, denominator).simplify()
+        Fraction::new(numerator, denominator)
     }
 }
 
@@ -125,7 +125,7 @@ impl Div for Fraction {
     fn div(self, other: Fraction) -> Fraction {
         let numerator = self.numerator * other.denominator as i32;
         let denominator = self.denominator * other.numerator as u32;
-        Fraction::new(numerator, denominator).simplify()
+        Fraction::new(numerator, denominator)
     }
 }
 
@@ -149,7 +149,7 @@ impl Rem for Fraction {
     fn rem(self, other: Fraction) -> Fraction {
         let numerator = self.numerator * other.denominator as i32;
         let denominator = self.denominator * other.numerator as u32;
-        Fraction::new(numerator, denominator).simplify()
+        Fraction::new(numerator, denominator)
     }
 }
 
