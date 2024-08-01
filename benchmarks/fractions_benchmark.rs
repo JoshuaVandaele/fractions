@@ -6,7 +6,7 @@ use num_bigfloat::BigFloat;
 
 use rug::Float;
 
-fn calc_pi_fractions(iterations: u32) {
+fn calc_pi_fractions(iterations: u32) -> Fraction {
     let mut pi = Fraction::new(3, 1);
     let mut sign = 1;
 
@@ -15,9 +15,11 @@ fn calc_pi_fractions(iterations: u32) {
         pi += sign * term;
         sign *= -1;
     }
+
+    return pi;
 }
 
-fn calc_pi_bigfloat(iterations: u32) {
+fn calc_pi_bigfloat(iterations: u32) -> BigFloat {
     let four: BigFloat = 4.into();
     let mut pi: BigFloat = 3.into();
     let mut sign: BigFloat = 1.into();
@@ -27,9 +29,11 @@ fn calc_pi_bigfloat(iterations: u32) {
         pi += sign * term;
         sign = -sign;
     }
+
+    return pi;
 }
 
-fn calc_pi_rug(iterations: u32) {
+fn calc_pi_rug(iterations: u32) -> Float {
     let four: Float = Float::with_val(53, 4);
     let mut pi: Float = Float::with_val(53, 3);
     let mut sign: Float = Float::with_val(53, 1);
@@ -39,6 +43,8 @@ fn calc_pi_rug(iterations: u32) {
         pi += sign.clone() * term;
         sign = -sign;
     }
+
+    return pi;
 }
 
 fn main() {
@@ -53,6 +59,16 @@ mod tests {
     use std::hint::black_box;
 
     use test::Bencher;
+
+    #[test]
+    fn test_calc_pi_equal() {
+        let pi_fractions = calc_pi_fractions(20);
+        let pi_bigfloat = calc_pi_bigfloat(20);
+        let pi_rug = calc_pi_rug(20);
+
+        assert_eq!(pi_fractions.to_decimal_string(16), pi_rug.to_string());
+        assert_eq!(pi_fractions.to_decimal_string(39), pi_bigfloat.to_string());
+    }
 
     #[bench]
     fn bench_calc_pi_fractions(b: &mut Bencher) {
