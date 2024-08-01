@@ -40,8 +40,8 @@ fn calc_pi_rug(iterations: u32) -> Float {
     let mut sign: Float = Float::with_val(32, 1);
 
     for i in (2..iterations).step_by(2) {
-        let term = four.clone() / Float::with_val(32, i * (i + 1) * (i + 2));
-        pi += sign.clone() * term;
+        let term = &four / Float::with_val(53, i * (i + 1) * (i + 2));
+        pi += &sign * &term;
         sign = -sign;
     }
 
@@ -74,21 +74,21 @@ mod tests {
     #[bench]
     fn bench_calc_pi_fractions(b: &mut Bencher) {
         b.iter(|| {
-            black_box(calc_pi_fractions(black_box(20)));
+            black_box(calc_pi_fractions(black_box(22)));
         });
     }
 
     #[bench]
     fn bench_calc_pi_bigfloat(b: &mut Bencher) {
         b.iter(|| {
-            black_box(calc_pi_bigfloat(black_box(20)));
+            black_box(calc_pi_bigfloat(black_box(22)));
         });
     }
 
     #[bench]
     fn bench_calc_pi_rug(b: &mut Bencher) {
         b.iter(|| {
-            black_box(calc_pi_rug(black_box(20)));
+            black_box(calc_pi_rug(black_box(22)));
         });
     }
 }
