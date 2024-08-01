@@ -7,13 +7,14 @@ use num_bigfloat::BigFloat;
 use rug::Float;
 
 fn calc_pi_fractions(iterations: u32) -> Fraction {
-    let mut pi = Fraction::new(3, 1);
-    let mut sign = 1;
+    let mut pi = Fraction::new(3, 1, false);
+    let mut negative = false;
 
     for i in (2..iterations).step_by(2) {
-        let term = Fraction::new(4, i * (i + 1) * (i + 2));
-        pi += sign * term;
-        sign *= -1;
+        let term = Fraction::new(4, i * (i + 1) * (i + 2), negative);
+        pi += term;
+
+        negative = !negative;
     }
 
     return pi;
