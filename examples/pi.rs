@@ -2,7 +2,7 @@ use fractions::{Fraction, FractionSign};
 
 // Calculate pi using the Nilakantha series
 fn main() {
-    let mut pi = Fraction::new(3, 1, FractionSign::Positive);
+    let mut pi: Fraction<u128> = Fraction::new(3, 1, FractionSign::Positive);
     let mut sign = FractionSign::Positive;
 
     for i in (2..22).step_by(2) {

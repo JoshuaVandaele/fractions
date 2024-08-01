@@ -6,18 +6,18 @@ use num_bigfloat::BigFloat;
 
 use rug::Float;
 
-fn calc_pi_fractions(iterations: u32) -> Fraction {
-    let mut pi = Fraction::new(3, 1, FractionSign::Positive);
+fn calc_pi_fractions(iterations: u32) -> Fraction<u32> {
+    let mut pi = Fraction::new(3u32, 1, FractionSign::Positive);
     let mut sign = FractionSign::Positive;
 
     for i in (2..iterations).step_by(2) {
-        let term = Fraction::new(4, i * (i + 1) * (i + 2), sign);
+        let term = Fraction::new(4u32, i * (i + 1) * (i + 2), sign);
         pi += term;
 
         sign = !sign;
     }
 
-    return pi;
+    pi
 }
 
 fn calc_pi_bigfloat(iterations: u32) -> BigFloat {
@@ -31,21 +31,21 @@ fn calc_pi_bigfloat(iterations: u32) -> BigFloat {
         sign = -sign;
     }
 
-    return pi;
+    pi
 }
 
 fn calc_pi_rug(iterations: u32) -> Float {
-    let four: Float = Float::with_val(53, 4);
-    let mut pi: Float = Float::with_val(53, 3);
-    let mut sign: Float = Float::with_val(53, 1);
+    let four: Float = Float::with_val(32, 4);
+    let mut pi: Float = Float::with_val(32, 3);
+    let mut sign: Float = Float::with_val(32, 1);
 
     for i in (2..iterations).step_by(2) {
-        let term = four.clone() / Float::with_val(53, i * (i + 1) * (i + 2));
+        let term = four.clone() / Float::with_val(32, i * (i + 1) * (i + 2));
         pi += sign.clone() * term;
         sign = -sign;
     }
 
-    return pi;
+    pi
 }
 
 fn main() {

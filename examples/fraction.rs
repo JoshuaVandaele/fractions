@@ -1,8 +1,8 @@
 use fractions::{Fraction, FractionSign};
 
 fn main() {
-    let frac1 = Fraction::new(28, 4, FractionSign::Positive);
-    let frac2 = Fraction::new(20, 24, FractionSign::Positive);
+    let frac1: Fraction<u16> = Fraction::new(28, 4, FractionSign::Positive);
+    let frac2: Fraction<u16> = Fraction::new(20, 24, FractionSign::Positive);
 
     println!("frac1: {}", frac1);
     println!("frac2: {}", frac2);
