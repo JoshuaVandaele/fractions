@@ -6,24 +6,27 @@ use std::ops::{
 
 #[derive(Debug, Clone, Copy)]
 pub struct Fraction {
-    pub numerator: i32,
+    pub numerator: u32,
     pub denominator: u32,
+    pub is_negative: bool,
 }
 
 impl Fraction {
-    pub fn new(numerator: i32, denominator: u32) -> Self {
+    pub fn new(numerator: u32, denominator: u32, is_negative: bool) -> Self {
         Fraction {
             numerator,
             denominator,
+            is_negative,
         }
         .simplify()
     }
 
     pub fn simplify(self) -> Fraction {
-        let gcd = Self::gcd(self.numerator.unsigned_abs(), self.denominator);
+        let gcd = Self::gcd(self.numerator, self.denominator);
         Fraction {
-            numerator: self.numerator / gcd as i32,
+            numerator: self.numerator / gcd,
             denominator: self.denominator / gcd,
+            is_negative: self.is_negative,
         }
     }
 
@@ -52,9 +55,10 @@ impl Fraction {
     // function to display the fraction in the form of a decimal with infinite precision
     pub fn to_decimal_string(&self, precision: usize) -> String {
         let mut result = String::new();
-        let mut numerator = self.numerator.unsigned_abs();
+        let mut numerator = self.numerator;
         let denominator = self.denominator;
-        if self.numerator < 0 {
+
+        if self.is_negative {
             result.push('-');
         }
         result.push_str(&(numerator / denominator).to_string());
@@ -81,10 +85,15 @@ impl Add for Fraction {
     type Output = Fraction;
 
     fn add(self, other: Fraction) -> Fraction {
-        let numerator =
-            self.numerator * other.denominator as i32 + other.numerator * self.denominator as i32;
+        let sign = self.is_negative ^ other.is_negative;
+
+        if sign {
+            return self - -other;
+        }
+
+        let numerator = self.numerator * other.denominator + other.numerator * self.denominator;
         let denominator = self.denominator * other.denominator;
-        Fraction::new(numerator, denominator)
+        Fraction::new(numerator, denominator, sign)
     }
 }
 
@@ -98,10 +107,23 @@ impl Sub for Fraction {
     type Output = Fraction;
 
     fn sub(self, other: Fraction) -> Fraction {
-        let numerator =
-            self.numerator * other.denominator as i32 - other.numerator * self.denominator as i32;
+        let sign = self.is_negative ^ other.is_negative;
+
+        if sign {
+            return self + -other;
+        }
+
+        let numerator1 = self.numerator * other.denominator;
+        let numerator2 = other.numerator * self.denominator;
+
+        let numerator = if numerator1 > numerator2 {
+            numerator1 - numerator2
+        } else {
+            numerator2 - numerator1
+        };
+
         let denominator = self.denominator * other.denominator;
-        Fraction::new(numerator, denominator)
+        Fraction::new(numerator, denominator, sign)
     }
 }
 
@@ -117,7 +139,8 @@ impl Mul for Fraction {
     fn mul(self, other: Fraction) -> Fraction {
         let numerator = self.numerator * other.numerator;
         let denominator = self.denominator * other.denominator;
-        Fraction::new(numerator, denominator)
+        let sign = self.is_negative ^ other.is_negative;
+        Fraction::new(numerator, denominator, sign)
     }
 }
 
@@ -131,9 +154,10 @@ impl Div for Fraction {
     type Output = Fraction;
 
     fn div(self, other: Fraction) -> Fraction {
-        let numerator = self.numerator * other.denominator as i32;
-        let denominator = self.denominator * other.numerator as u32;
-        Fraction::new(numerator, denominator)
+        let numerator = self.numerator * other.denominator;
+        let denominator = self.denominator * other.numerator;
+        let sign = self.is_negative ^ other.is_negative;
+        Fraction::new(numerator, denominator, sign)
     }
 }
 
@@ -147,7 +171,7 @@ impl Neg for Fraction {
     type Output = Fraction;
 
     fn neg(self) -> Fraction {
-        Fraction::new(-self.numerator, self.denominator)
+        Fraction::new(self.numerator, self.denominator, !self.is_negative)
     }
 }
 
@@ -155,10 +179,10 @@ impl Rem for Fraction {
     type Output = Fraction;
 
     fn rem(self, other: Fraction) -> Fraction {
-        let numerator = (self.numerator * other.denominator as i32)
-            % (other.numerator * self.denominator as i32);
+        let numerator = (self.numerator * other.denominator) % (other.numerator * self.denominator);
         let denominator = self.denominator * other.denominator;
-        Fraction::new(numerator, denominator)
+        let sign = self.is_negative ^ other.is_negative;
+        Fraction::new(numerator, denominator, sign)
     }
 }
 
@@ -170,13 +194,19 @@ impl RemAssign for Fraction {
 
 impl PartialEq for Fraction {
     fn eq(&self, other: &Self) -> bool {
-        self.numerator * other.denominator as i32 == other.numerator * self.denominator as i32
+        self.numerator * other.denominator == other.numerator * self.denominator
     }
 }
 
 impl Display for Fraction {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}/{}", self.numerator, self.denominator)
+        write!(
+            f,
+            "{}{}/{}",
+            if self.is_negative { "-" } else { "" },
+            self.numerator,
+            self.denominator
+        )
     }
 }
 
@@ -186,7 +216,8 @@ macro_rules! impl_from {
         $(
             impl From<$t> for Fraction {
                 fn from(n: $t) -> Self {
-                    Fraction::new(n as i32, 1)
+                    #[allow(unused_comparisons)]
+                    Fraction::new(n as u32, 1, n < 0)
                 }
             }
         )*
@@ -199,6 +230,9 @@ macro_rules! impl_into {
         $(
             impl From<Fraction> for $t {
                 fn from(f: Fraction) -> Self {
+                    if f.is_negative {
+                        return -(f.numerator as $t / f.denominator as $t);
+                    }
                     f.numerator as $t / f.denominator as $t
                 }
             }
@@ -214,7 +248,8 @@ macro_rules! impl_operation {
                 type Output = Fraction;
 
                 fn $op_fn(self, other: Fraction) -> Fraction {
-                    Fraction::new(self as i32, 1).$op_fn(other)
+                    #[allow(unused_comparisons)]
+                    Fraction::new(self as u32, 1, self < 0).$op_fn(other)
                 }
             }
 
@@ -222,7 +257,8 @@ macro_rules! impl_operation {
                 type Output = Fraction;
 
                 fn $op_fn(self, other: $t) -> Fraction {
-                    self.$op_fn(Fraction::new(other as i32, 1))
+                    #[allow(unused_comparisons)]
+                    self.$op_fn(Fraction::new(other as u32, 1, other < 0))
                 }
             }
         )*
@@ -235,7 +271,8 @@ macro_rules! impl_assign {
         $(
             impl $op_trait<$t> for Fraction {
                 fn $op_fn(&mut self, other: $t) {
-                    self.$op_fn(Fraction::new(other as i32, 1));
+                    #[allow(unused_comparisons)]
+                    self.$op_fn(Fraction::new(other as u32, 1, other < 0));
                 }
             }
         )*
@@ -263,65 +300,120 @@ mod tests {
 
     #[test]
     fn test_simplify() {
-        let f = Fraction::new(4, 6);
-        let f = f.simplify();
+        let f = Fraction::new(4, 6, false);
         assert_eq!(f.numerator, 2);
         assert_eq!(f.denominator, 3);
 
-        let f = Fraction::new(123, 456);
-        let f = f.simplify();
+        let f = Fraction::new(123, 456, false);
         assert_eq!(f.numerator, 41);
         assert_eq!(f.denominator, 152);
     }
 
     #[test]
     fn test_add() {
-        let f1 = Fraction::new(1, 2);
-        let f2 = Fraction::new(1, 3);
-        let f = f1 + f2;
+        let f1 = Fraction::new(1, 2, false);
+        let f2 = Fraction::new(1, 3, false);
+        let f3 = Fraction::new(1, 2, true);
+        let f4 = Fraction::new(10, 2, false);
+
+        let mut f = f1 + f2;
+
         assert_eq!(f.numerator, 5);
         assert_eq!(f.denominator, 6);
+
+        f += f3;
+
+        assert_eq!(f.numerator, 1);
+        assert_eq!(f.denominator, 3);
+
+        f += f4;
+
+        assert_eq!(f.numerator, 16);
+        assert_eq!(f.denominator, 3);
     }
 
     #[test]
     fn test_sub() {
-        let f1 = Fraction::new(1, 2);
-        let f2 = Fraction::new(1, 3);
+        let f1 = Fraction::new(1, 2, false);
+        let f2 = Fraction::new(1, 3, false);
+        let f3 = Fraction::new(1, 2, true);
+        let f4 = Fraction::new(10, 2, false);
+
         let f = f1 - f2;
+
         assert_eq!(f.numerator, 1);
         assert_eq!(f.denominator, 6);
+
+        let f = f - f3;
+
+        assert_eq!(f.numerator, 2);
+        assert_eq!(f.denominator, 3);
+
+        let f = f - f4;
+
+        assert_eq!(f.numerator, 13);
+        assert_eq!(f.denominator, 3);
     }
 
     #[test]
     fn test_mul() {
-        let f1 = Fraction::new(1, 2);
-        let f2 = Fraction::new(1, 3);
+        let f1 = Fraction::new(1, 2, false);
+        let f2 = Fraction::new(1, 3, false);
+        let f3 = Fraction::new(1, 2, true);
+        let f4 = Fraction::new(10, 2, false);
+
         let f = f1 * f2;
         assert_eq!(f.numerator, 1);
         assert_eq!(f.denominator, 6);
+
+        let f = f * f3;
+
+        assert_eq!(f.numerator, 1);
+        assert_eq!(f.denominator, 12);
+
+        let f = f * f4;
+
+        assert_eq!(f.numerator, 5);
+        assert_eq!(f.denominator, 12);
     }
 
     #[test]
     fn test_div() {
-        let f1 = Fraction::new(1, 2);
-        let f2 = Fraction::new(1, 3);
+        let f1 = Fraction::new(1, 2, false);
+        let f2 = Fraction::new(1, 3, false);
+        let f3 = Fraction::new(1, 2, true);
+        let f4 = Fraction::new(10, 2, false);
+
         let f = f1 / f2;
         assert_eq!(f.numerator, 3);
         assert_eq!(f.denominator, 2);
+
+        let f = f / f3;
+
+        assert_eq!(f.numerator, 3);
+        assert_eq!(f.denominator, 1);
+
+        let f = f / f4;
+
+        assert_eq!(f.numerator, 3);
+        assert_eq!(f.denominator, 5);
     }
 
     #[test]
     fn test_neg() {
-        let f = Fraction::new(1, 2);
+        let f = Fraction::new(1, 2, false);
         let f = -f;
-        assert_eq!(f.numerator, -1);
-        assert_eq!(f.denominator, 2);
+        assert_eq!(-0.5, f.into());
+
+        let f = Fraction::new(1, 2, true);
+        let f = -f;
+        assert_eq!(0.5, f.into());
     }
 
     #[test]
     fn test_rem() {
-        let f1 = Fraction::new(1, 2);
-        let f2 = Fraction::new(1, 3);
+        let f1 = Fraction::new(1, 2, false);
+        let f2 = Fraction::new(1, 3, false);
         let f = f1 % f2;
         assert_eq!(f.numerator, 1);
         assert_eq!(f.denominator, 6);
@@ -329,18 +421,21 @@ mod tests {
 
     #[test]
     fn test_eq() {
-        let f1 = Fraction::new(1, 2);
-        let f2 = Fraction::new(1, 3);
+        let f1 = Fraction::new(1, 2, false);
+        let f2 = Fraction::new(1, 3, false);
         assert_ne!(f1, f2);
 
-        let f1 = Fraction::new(1, 2);
-        let f2 = Fraction::new(2, 4);
+        let f1 = Fraction::new(1, 2, false);
+        let f2 = Fraction::new(2, 4, false);
         assert_eq!(f1, f2);
     }
 
     #[test]
     fn test_display() {
-        let f = Fraction::new(1, 2);
+        let f = Fraction::new(1, 2, false);
         assert_eq!(format!("{}", f), "1/2");
+
+        let f = Fraction::new(1, 2, true);
+        assert_eq!(format!("{}", f), "-1/2");
     }
 }
